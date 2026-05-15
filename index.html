@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>开票流程线上化模拟系统</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" aria-label="系统菜单">
+        <div class="brand">
+          <span class="brand-mark">XY</span>
+          <span>象屿车融租</span>
+        </div>
+        <nav id="navList" class="nav-list"></nav>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <h1 id="pageTitle">财务管理</h1>
+            <div id="breadcrumb" class="breadcrumb">首页 / 财务管理</div>
+          </div>
+          <div class="top-actions">
+            <button id="resetBtn" class="ghost-btn" type="button">重新演示</button>
+            <span id="roleBadge" class="role-badge">当前：合规</span>
+          </div>
+        </header>
+
+        <section id="content" class="content"></section>
+      </main>
+
+      <aside id="demoGuide" class="demo-guide" aria-label="领导演示助手"></aside>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
