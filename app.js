@@ -22,7 +22,7 @@ const navItems = [
 const stepLabels = ["发起申请", "自动取数", "规则校验", "合规复核", "主管审批", "财务回传"];
 
 const sourceRows = [
-  ["进件管理", "客户、合同、证件号、GPS费用金额", "已读取"],
+  ["进件管理", "客户、合同、主体归属（金象/盈信）、GPS费用金额", "已读取"],
   ["台账管理", "租金期次、合同状态、应收记录", "已读取"],
   ["费用管理", "GPS费主体规则、公证费、请款记录", "已读取"],
   ["还款管理", "已支付利息、实收金额", "已读取"],
@@ -38,8 +38,15 @@ const invoiceRows = [
   ["滞纳金", "126.00", "台账+结清", "盈信融租", "待校验"],
 ];
 
+const subjectRows = [
+  ["金象", "金象", "金象业务直接按金象主体开票", "规则已配置"],
+  ["盈信", "盈信融租", "租金、GPS1980、公证费、滞纳金", "规则已配置"],
+  ["盈信", "盈信科技", "GPS1000/GPS200", "自动拆分"],
+];
+
 const checkRows = [
-  ["主体一致性", "合同主体=盈信；开票主体=盈信", "通过"],
+  ["大主体识别", "系统先识别金象/盈信；本单归属盈信", "通过"],
+  ["盈信子主体拆分", "盈信下分盈信融租、盈信科技；GPS按金额自动分配子主体", "提醒"],
   ["金额匹配", "已支付利息、服务费与本次开票金额一致", "通过"],
   ["GPS主体拆分", "1980元归盈信融租；1000/200元归盈信科技，系统自动拆成两组开票明细", "提醒"],
   ["重复开票", "同客户同期间无历史开票记录", "通过"],
@@ -53,7 +60,7 @@ const state = {
   step: -1,
   role: "合规",
   customerRead: true,
-  reviewText: "已核对GPS费用主体拆分规则：1980元归盈信融租，1000元/200元归盈信科技，系统已自动拆成两组开票明细；滞纳金126.00已合并去重，建议提交主管审批。",
+  reviewText: "已核对主体层级：系统先识别金象/盈信，本单归属盈信；盈信下按费用规则拆分为盈信融租和盈信科技。GPS1980元归盈信融租，GPS1000元/200元归盈信科技；滞纳金126.00已合并去重，建议提交主管审批。",
   approved: false,
   returned: false,
   invoiceNo: "FQ202605140086-RZ",
@@ -66,12 +73,12 @@ const state = {
 const demoFlow = [
   { view: "finance", title: "进入财务管理", next: "点击“开票申请中心”，进入统一开票入口。", menu: "财务管理" },
   { view: "apply", title: "合规发起申请", next: "确认客户、主体、发票类型后，点击“自动取数”。", menu: "财务管理" },
-  { view: "fetch", title: "系统自动取数", next: "查看系统从进件查询带出的GPS费用，系统会按金额自动识别盈信融租/盈信科技。", menu: "财务管理" },
-  { view: "validate", title: "规则自动校验", next: "系统显示GPS主体拆分和滞纳金提醒项，点击“进入合规复核”。", menu: "财务管理" },
-  { view: "review", title: "合规复核提醒项", next: "合规确认GPS主体拆分和滞纳金提醒后提交主管审批。", menu: "财务管理" },
+  { view: "fetch", title: "系统自动取数", next: "查看系统先识别金象/盈信，再对盈信业务按规则拆到盈信融租/盈信科技。", menu: "财务管理" },
+  { view: "validate", title: "规则自动校验", next: "系统显示大主体识别、盈信子主体拆分和滞纳金提醒项。", menu: "财务管理" },
+  { view: "review", title: "合规复核提醒项", next: "合规确认主体层级、GPS拆分和滞纳金提醒后提交主管审批。", menu: "财务管理" },
   { view: "approval", title: "主管线上审批", next: "主管查看合规意见和校验结果，点击审批通过。", menu: "待办任务中心" },
   { view: "financeBack", title: "财务回传发票", next: "财务按盈信融租、盈信科技分别回填发票号和PDF。", menu: "财务管理" },
-  { view: "ledger", title: "台账闭环完成", next: "领导能看到GPS费用已按主体拆分成两条开票记录，并分别归档。", menu: "财务管理" },
+  { view: "ledger", title: "台账闭环完成", next: "领导能看到大主体与开票子主体都已记录，GPS费用分别归档。", menu: "财务管理" },
 ];
 
 const $ = (selector) => document.querySelector(selector);
@@ -322,8 +329,8 @@ function applyView() {
             <input value="张某某" />
           </div>
           <div class="field">
-            <label>合同主体</label>
-            <input value="盈信" />
+            <label>大主体</label>
+            <input value="盈信（下分盈信融租/盈信科技）" />
           </div>
           <div class="field">
             <label>证件号</label>
@@ -345,7 +352,7 @@ function applyView() {
           </div>
           <div class="field span-3">
             <label>申请说明</label>
-            <textarea>客户投诉要求开具租金发票；系统同步校验GPS费、公证费及滞纳金是否存在可开票记录。GPS费用需按金额自动识别主体：1980元归盈信融租，1000/200元归盈信科技。</textarea>
+            <textarea>客户投诉要求开具租金发票；系统同步校验GPS费、公证费及滞纳金是否存在可开票记录。主体先识别金象/盈信；本单归属盈信，GPS费用需按金额拆分子主体：1980元归盈信融租，1000/200元归盈信科技。</textarea>
           </div>
         </div>
         <div class="actions">
@@ -366,7 +373,7 @@ function fetchView() {
         <div class="section-head">
           <div>
             <h2>系统自动取数</h2>
-            <p>系统从现有模块读取数据，并按GPS金额规则自动拆分开票主体。</p>
+            <p>系统从现有模块读取数据，先识别金象/盈信，再按规则拆分实际开票主体。</p>
           </div>
           <span class="badge green">取数完成</span>
         </div>
@@ -385,8 +392,10 @@ function fetchView() {
               .join("")}
           </div>
           <div>
+            ${table(["大主体", "开票主体", "适用规则", "状态"], subjectRows, 3)}
+            <div style="height: 14px"></div>
             ${table(["费用项", "金额", "来源", "开票主体", "状态"], invoiceRows, 4)}
-            <div class="hint-band">GPS费用主体规则：1980元归盈信融租；1000元/200元归盈信科技。系统已自动拆成两组开票明细，合规无需手工判断主体。</div>
+            <div class="hint-band">主体规则：公司主要分为金象、盈信；盈信下再分盈信融租和盈信科技。GPS费用1980元归盈信融租，1000元/200元归盈信科技。</div>
           </div>
         </div>
         <div class="actions">
@@ -407,12 +416,12 @@ function validateView() {
         <div class="section-head">
           <div>
             <h2>自动规则校验</h2>
-            <p>系统先做主体、金额、GPS主体拆分、重复开票、资料完整性和滞纳金校验。</p>
+            <p>系统先做大主体识别、盈信子主体拆分、金额、重复开票、资料完整性和滞纳金校验。</p>
           </div>
-          <span class="badge amber">2项提醒</span>
+          <span class="badge amber">3项提醒</span>
         </div>
         ${table(["校验项", "系统判断", "结果"], checkRows, 2)}
-        <div class="hint-band">合规只需复核黄色提醒和红色异常事项；GPS主体拆分由系统自动完成，合规确认规则适用即可。</div>
+        <div class="hint-band">合规只需复核黄色提醒和红色异常事项；系统负责先判断金象/盈信，再判断盈信融租/盈信科技。</div>
         <div class="actions">
           <button class="secondary-btn" type="button" data-next="fetch">返回取数</button>
           <button class="primary-btn" type="button" data-next="review">进入合规复核</button>
@@ -431,14 +440,16 @@ function reviewView() {
         <div class="section-head">
           <div>
             <h2>合规复核异常/提醒项</h2>
-            <p>本次需复核GPS主体拆分和滞纳金提醒项。</p>
+            <p>本次需复核大主体归属、盈信子主体拆分和滞纳金提醒项。</p>
           </div>
           <span class="badge amber">待提交审批</span>
         </div>
         <div class="review-layout">
           <div class="plain-box">
             <h3>提醒项</h3>
-            <p><strong>GPS主体拆分</strong></p>
+            <p><strong>主体层级</strong></p>
+            <p>公司主体主要为金象、盈信；本单大主体识别为盈信。</p>
+            <p><strong>盈信子主体/GPS拆分</strong></p>
             <p>1980元：盈信融租主体；1000元/200元：盈信科技主体。</p>
             <p>系统处理：自动拆成两组开票明细，分别走审批、开票和电子归档。</p>
             <p><strong>滞纳金：126.00</strong></p>
@@ -476,7 +487,7 @@ function approvalView() {
           ${state.approved ? '<span class="badge green">已通过</span>' : '<span class="badge amber">待审批</span>'}
         </div>
         <div class="plain-box">
-          <p><strong>系统校验：</strong>4项通过，2项提醒；GPS费用已按盈信融租/盈信科技拆分。</p>
+          <p><strong>系统校验：</strong>4项通过，3项提醒；系统已先识别大主体为盈信，再按盈信融租/盈信科技拆分GPS费用。</p>
           <p><strong>合规意见：</strong>${state.reviewText}</p>
         </div>
         <div class="timeline">
@@ -526,36 +537,36 @@ function financeBackView() {
         </div>
         <div class="form-grid">
           <div class="field">
-            <label>盈信融租申请单号</label>
+            <label>盈信-盈信融租申请单号</label>
             <input value="KP202605140086-RZ" />
           </div>
           <div class="field">
-            <label>盈信融租发票号码</label>
+            <label>盈信-盈信融租发票号码</label>
             <input id="invoiceNo" value="${state.invoiceNo}" />
           </div>
           <div class="field">
-            <label>盈信融租开票内容</label>
+            <label>盈信-盈信融租开票内容</label>
             <input value="租金/GPS1980/公证费/滞纳金" />
           </div>
           <div class="field">
-            <label>盈信科技申请单号</label>
+            <label>盈信-盈信科技申请单号</label>
             <input value="KP202605140086-KJ" />
           </div>
           <div class="field">
-            <label>盈信科技发票号码</label>
+            <label>盈信-盈信科技发票号码</label>
             <input id="invoiceNoTech" value="${state.invoiceNoTech}" />
           </div>
           <div class="field">
-            <label>盈信科技开票内容</label>
+            <label>盈信-盈信科技开票内容</label>
             <input value="GPS1000/GPS200" />
           </div>
           <div class="plain-box span-3">
             <h3>电子发票PDF</h3>
-            <p>盈信融租：${state.invoiceNo}.pdf　${statusBadge("已上传")}</p>
-            <p>盈信科技：${state.invoiceNoTech}.pdf　${statusBadge("已上传")}</p>
+            <p>盈信-盈信融租：${state.invoiceNo}.pdf　${statusBadge("已上传")}</p>
+            <p>盈信-盈信科技：${state.invoiceNoTech}.pdf　${statusBadge("已上传")}</p>
           </div>
         </div>
-        <div class="hint-band">回传后，系统按开票主体分别保存发票PDF、审批记录和开票明细，并统一关联至客户和合同维度。</div>
+        <div class="hint-band">回传后，系统同时保存“大主体”和“实际开票主体”，按主体分别归档PDF，并统一关联至客户和合同维度。</div>
         <div class="actions">
           <button class="secondary-btn" type="button" data-next="approval">返回审批</button>
           <button class="primary-btn" type="button" data-action="archive">回传并归档</button>
@@ -568,11 +579,11 @@ function financeBackView() {
 function ledgerView() {
   setMeta("发票台账", "财务管理 / 发票台账", "合规");
   const rows = [
-    ["KP202605140086-RZ", "张某某", "盈信融租", "租金+GPS1980+公证费+滞纳金", state.invoiceNo, state.archived ? "已归档" : "待归档"],
-    ["KP202605140086-KJ", "张某某", "盈信科技", "GPS1000+GPS200", state.invoiceNoTech, state.archived ? "已归档" : "待归档"],
-    ["KP202605140085", "李某某", "盈信融租", "租金", "FQ202605140085", "已归档"],
-    ["KP202605140084", "王某某", "盈信融租", "滞纳金", "-", "待合规复核"],
-    ["KP202605140083", "某公司户", "盈信科技", "GPS1000", "-", "待财务开票"],
+    ["KP202605140086-RZ", "张某某", "盈信", "盈信融租", "租金+GPS1980+公证费+滞纳金", state.invoiceNo, state.archived ? "已归档" : "待归档"],
+    ["KP202605140086-KJ", "张某某", "盈信", "盈信科技", "GPS1000+GPS200", state.invoiceNoTech, state.archived ? "已归档" : "待归档"],
+    ["KP202605140085", "李某某", "金象", "金象", "租金", "FQ202605140085", "已归档"],
+    ["KP202605140084", "王某某", "盈信", "盈信融租", "滞纳金", "-", "待合规复核"],
+    ["KP202605140083", "某公司户", "盈信", "盈信科技", "GPS1000", "-", "待财务开票"],
   ];
   return `
     <section class="section">
@@ -591,8 +602,8 @@ function ledgerView() {
           <div class="metric" style="background: var(--greenSoft)"><div>已开票归档</div><strong style="color: var(--green)">${state.archived ? "130" : "128"}</strong></div>
           <div class="metric" style="background: var(--redSoft)"><div>异常/超期</div><strong style="color: var(--red)">1</strong></div>
         </div>
-        ${table(["申请单号", "客户", "开票主体", "发票类型", "发票号", "状态"], rows, 5)}
-        <div class="hint-band">闭环价值：GPS费用按主体拆分后仍在同一客户/合同下追溯，避免主体错开、混开或重复打印签字。</div>
+        ${table(["申请单号", "客户", "大主体", "开票主体", "发票类型", "发票号", "状态"], rows, 6)}
+        <div class="hint-band">闭环价值：台账同时记录金象/盈信大主体和实际开票主体，GPS费用按主体拆分后仍能在同一客户/合同下追溯。</div>
         <div class="actions">
           <button class="secondary-btn" type="button" data-next="finance">返回财务管理</button>
           <button class="primary-btn" type="button" data-next="apply">再发起一单</button>
