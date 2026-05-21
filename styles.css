@@ -194,6 +194,10 @@ button {
   font-size: 15px;
 }
 
+.compact-head {
+  margin-bottom: 14px;
+}
+
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -329,7 +333,8 @@ button {
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -338,7 +343,8 @@ button {
   outline: none;
 }
 
-.field input {
+.field input,
+.field select {
   height: 44px;
   padding: 0 12px;
 }
@@ -351,7 +357,8 @@ button {
 }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgba(31, 112, 189, 0.1);
 }
@@ -388,6 +395,70 @@ button {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 22px;
+}
+
+.inline-btn {
+  width: 100%;
+}
+
+.filter-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+.mini-title {
+  margin: 18px 0 10px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.chip-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.project-chip {
+  display: grid;
+  gap: 4px;
+  min-height: 66px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+}
+
+.project-chip strong {
+  font-size: 14px;
+}
+
+.project-chip span,
+.project-chip em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.project-chip.selected {
+  border-color: var(--teal);
+  background: var(--tealSoft);
+}
+
+.project-chip.selected em {
+  color: var(--teal);
+  font-weight: 800;
+}
+
+.split-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
 }
 
 .primary-btn,
@@ -483,6 +554,47 @@ button {
   border-bottom: 1px solid var(--lineSoft);
   text-align: left;
   font-size: 14px;
+}
+
+.wide-table th,
+.wide-table td {
+  min-width: 112px;
+  font-size: 13px;
+}
+
+.wide-table th:nth-child(7),
+.wide-table td:nth-child(7),
+.wide-table th:nth-child(8),
+.wide-table td:nth-child(8) {
+  min-width: 210px;
+}
+
+.invoice-template {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.template-title {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.template-note {
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.template-grid {
+  border: 0;
+  border-radius: 0;
 }
 
 .data-table th {
@@ -741,8 +853,14 @@ button {
   .grid-3,
   .flow-layout,
   .review-layout,
-  .metrics {
+  .metrics,
+  .filter-card,
+  .split-row {
     grid-template-columns: 1fr;
+  }
+
+  .chip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .stepper {
